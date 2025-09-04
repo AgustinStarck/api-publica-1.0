@@ -10,15 +10,15 @@ def setup_periodic_tasks():
     """
     Configura las tareas periódicas al iniciar el servidor
     """
-    # Verificar si la tarea ya existe
+    
     if not Schedule.objects.filter(func='mi_api_app.tasks.run_news_scraper').exists():
         schedule(
             'mi_api_app.tasks.run_news_scraper',
             name='Scraper de Noticias cada 40 minutos',
             schedule_type=Schedule.MINUTES,
             minutes=40,
-            repeats=-1,  # Se repite indefinidamente
-            next_run=None  # Ejecutar inmediatamente al iniciar
+            repeats=-1, 
+            next_run=None  
         )
         logger.info("✅ Tarea periódica configurada: Scraper cada 40 minutos")
 
@@ -29,12 +29,12 @@ def run_news_scraper():
     try:
         logger.info("🔄 Iniciando scraper automático de noticias...")
         
-        # Ejecutar el comando de importación
+        
         from io import StringIO
         import sys
         from django.core.management import call_command
         
-        # Capturar output para logging
+        
         old_stdout = sys.stdout
         sys.stdout = mystdout = StringIO()
         

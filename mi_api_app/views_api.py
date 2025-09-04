@@ -5,10 +5,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import noticias
 from django.db.models import Q
-from .scheduler import scheduler
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Importamos el scheduler dentro de las funciones para evitar circular imports
+def get_scheduler():
+    from .scheduler import start_scheduler
+    return start_scheduler()
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -17,6 +21,7 @@ def get_noticias_json(request):
     try:
         limit = int(request.GET.get('limit', 50))
         search = request.GET.get('search', '')
+        all_data = request.GET.get('all', '').lower() == 'true'
         
         noticias_qs = noticias.objects.all().order_by('-fecha')
         
@@ -26,7 +31,11 @@ def get_noticias_json(request):
                 Q(descripcion__icontains=search)
             )
         
-        noticias_list = noticias_qs[:limit]
+        # Si se piden todos los datos, ignorar el límite
+        if all_data:
+            noticias_list = list(noticias_qs)
+        else:
+            noticias_list = noticias_qs[:limit]
         
         response_data = []
         for noticia in noticias_list:
@@ -49,6 +58,7 @@ def get_noticias_json(request):
 @api_view(['GET'])
 def scheduler_status(request):
     """Estado del scheduler"""
+    scheduler = get_scheduler()
     return Response({
         'status': 'active' if scheduler.is_running else 'inactive',
         'interval': 'cada 40 minutos',
@@ -59,6 +69,7 @@ def scheduler_status(request):
 @api_view(['GET', 'POST'])
 def run_scraper_now(request):
     """Ejecutar scraper manualmente"""
+    scheduler = get_scheduler()
     try:
         if request.method == 'GET':
             limit = int(request.GET.get('limit', 15))
@@ -81,6 +92,7 @@ def run_scraper_now(request):
 @api_view(['POST'])
 def control_scheduler(request):
     """Controlar el scheduler (start/stop)"""
+    scheduler = get_scheduler()
     action = request.data.get('action', '').lower()
     
     if action == 'start':

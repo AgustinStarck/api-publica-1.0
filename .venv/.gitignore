@@ -1,0 +1,6 @@
+# .gitignore - agrega estas líneas
+staticfiles/
+*.sqlite3
+.env
+__pycache__/
+*.pyc
