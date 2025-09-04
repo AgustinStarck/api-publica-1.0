@@ -46,11 +46,51 @@ def get_news_feed(url, limit: int = 1000):
                 domain = parsed_url.netloc
                 site_icon = f"https://logo.clearbit.com/{domain}"
 
+                # Buscar imágenes en la entrada
+                image_url = None
+                
+                # Verificar si hay elementos media con type image/jpeg o image/png
+                if hasattr(entry, 'media_content'):
+                    for media in entry.media_content:
+                        if media.get('type', '').startswith('image/'):
+                            image_url = media.get('url', '')
+                            break
+                
+                # Si no se encontró en media_content, buscar en otros campos comunes
+                if not image_url and hasattr(entry, 'links'):
+                    for link_item in entry.links:
+                        if link_item.get('type', '').startswith('image/'):
+                            image_url = link_item.get('href', '')
+                            break
+                
+                # Buscar en enclosures
+                if not image_url and hasattr(entry, 'enclosures'):
+                    for enclosure in entry.enclosures:
+                        if enclosure.get('type', '').startswith('image/'):
+                            image_url = enclosure.get('href', '')
+                            break
+                
+                # Buscar en campos específicos como media_thumbnail
+                if not image_url and hasattr(entry, 'media_thumbnail'):
+                    image_url = entry.media_thumbnail[0].get('url', '') if entry.media_thumbnail else ''
+                
+                # Buscar en el contenido usando expresiones regulares
+                if not image_url:
+                    content = entry.get('content', [{}])[0].get('value', '') if hasattr(entry, 'content') else ''
+                    content = content or entry.get('description', '')
+                    
+                    # Buscar URLs de imágenes en el contenido HTML
+                    img_pattern = r'<img[^>]+src="([^">]+)"'
+                    images = re.findall(img_pattern, content)
+                    if images:
+                        image_url = images[0]
+
                 news_item = {
                     "title": title[:199],  # Asegurar que no exceda el límite del modelo
                     "description": description[:1000],  # Limitar descripción
                     "site_icon": site_icon,
-                    "link": link
+                    "link": link,
+                    "image": image_url  # Agregar la URL de la imagen
                 }
                 news_list.append(news_item)
                 

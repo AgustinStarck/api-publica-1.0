@@ -75,7 +75,8 @@ class Command(BaseCommand):
                             titulo=news_item['title'],
                             descripcion=news_item['description'],
                             site_icon=news_item['site_icon'],
-                            link=news_item['link']
+                            link=news_item['link'],
+                            image=news_item['image'],
                         )
                         count += 1
                 
