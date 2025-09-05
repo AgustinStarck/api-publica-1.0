@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 # Importamos el scheduler dentro de las funciones para evitar circular imports
 def get_scheduler():
-    from .scheduler import start_scheduler
-    return start_scheduler()
+    """Obtiene la instancia del scheduler"""
+    from .scheduler import scheduler
+    return scheduler
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
