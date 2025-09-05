@@ -9,15 +9,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Importamos el scheduler dentro de las funciones para evitar circular imports
 def get_scheduler():
-    from .scheduler import scheduler, start_scheduler
-    
-    # Si el scheduler no está corriendo, iniciarlo
-    if not scheduler.is_running:
-        start_scheduler()
-    
+    """Obtiene la instancia del scheduler"""
+    from .scheduler import scheduler
     return scheduler
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -71,32 +67,40 @@ def scheduler_status(request):
         'message': 'El scraper se ejecuta automáticamente cada 40 minutos'
     })
 
+
 @api_view(['GET', 'POST'])
 def run_scraper_now(request):
-    """Ejecutar scraper manualmente"""
+    """Ejecutar scraper manualmente con filtros"""
     try:
+        # Obtener parámetros
         if request.method == 'GET':
             limit = int(request.GET.get('limit', 10))
+            search = request.GET.get('search', '')
+            category = request.GET.get('category', '')
         else:
             limit = int(request.data.get('limit', 10))
+            search = request.data.get('search', '')
+            category = request.data.get('category', '')
         
-        scheduler = get_scheduler()  # ← Ahora devuelve la instancia
+        scheduler = get_scheduler()
         
-        # Verificar que el método existe
         if hasattr(scheduler, 'run_manual'):
-            success = scheduler.run_manual(limit=limit)
+            success = scheduler.run_manual(limit=limit, search=search, category=category)
             return Response({
                 'success': success,
-                'message': f'Scraper ejecutado con límite {limit}',
-                'limit': limit
+                'message': f'Scraper ejecutado con filtros (search: "{search}", category: "{category}")',
+                'limit': limit,
+                'search': search,
+                'category': category,
+                'total_noticias': noticias.objects.count()
             })
         else:
             # Fallback al comando directo
             from django.core.management import call_command
-            call_command('import_rss', limit=limit)
+            call_command('import_rss', limit=limit, search=search, category=category)
             return Response({
                 'success': True,
-                'message': f'Scraper ejecutado via comando (limit: {limit})'
+                'message': f'Scraper ejecutado via comando'
             })
             
     except Exception as e:
@@ -121,4 +125,3 @@ def control_scheduler(request):
         return Response({
             'error': 'Acción no válida. Use "start" o "stop"'
         }, status=400)
-    

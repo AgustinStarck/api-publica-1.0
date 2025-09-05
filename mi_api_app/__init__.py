@@ -10,7 +10,8 @@ class MiApiAppConfig(AppConfig):
     
     def ready(self):
         # Iniciar el scheduler cuando Django esté listo
-        if os.environ.get('RUN_MAIN') or os.environ.get('RENDER'):
+        # En Render, siempre iniciar el scheduler
+        if os.environ.get('RUN_MAIN') or os.environ.get('RENDER') or True:
             try:
                 from .scheduler import start_scheduler
                 start_scheduler()
