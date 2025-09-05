@@ -43,7 +43,7 @@ class Command(BaseCommand):
             "https://feeds.nbcnews.com/nbcnews/public/world",             # NBC News
             "https://feeds.a.dj.com/rss/RSSWorldNews.xml",                # Wall Street Journal - World
             "https://www.ft.com/rss/world",                               # Financial Times
-            "https://www.politico.com/rss/world-news.xml",                # Politico World
+            "https://rss.politico.com/playbook.xml",                # Politico World
             "https://www.france24.com/en/rss",                            # France24 English
             "https://english.kyodonews.net/rss/news",                     # Kyodo News (Japón)
             "https://www.dw.com/atom/rss-en-all",                         # Deutsche Welle (Alemania)

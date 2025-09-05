@@ -21,17 +21,17 @@ class Command(BaseCommand):
             if options['immediate']:
                 try:
                     logger.info("🔄 Ejecutando scraper inmediatamente...")
-                    call_command('import_rss', limit=5)
+                    call_command('import_rss', limit=30)
                     logger.info("✅ Scraper completado")
                 except Exception as e:
                     logger.error(f"❌ Error en scraper: {e}")
             
-            # Ejecutar cada 40 minutos
+            
             while True:
-                time.sleep(2400)  # 40 minutos
+                time.sleep(780)  
                 try:
                     logger.info("🔄 Ejecutando scraper automático...")
-                    call_command('import_rss', limit=5)
+                    call_command('import_rss', limit=30)
                     logger.info("✅ Scraper automático completado")
                 except Exception as e:
                     logger.error(f"❌ Error en scraper automático: {e}")
