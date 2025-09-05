@@ -69,20 +69,30 @@ def scheduler_status(request):
 @api_view(['GET', 'POST'])
 def run_scraper_now(request):
     """Ejecutar scraper manualmente"""
-    scheduler = get_scheduler()
     try:
         if request.method == 'GET':
-            limit = int(request.GET.get('limit', 15))
+            limit = int(request.GET.get('limit', 10))
         else:
-            limit = int(request.data.get('limit', 15))
+            limit = int(request.data.get('limit', 10))
         
-        success = scheduler.run_manual(limit=limit)
-        
-        return Response({
-            'success': success,
-            'message': f'Scraper ejecutado manualmente con límite {limit}',
-            'limit': limit
-        })
+        # 👇 VERIFICAR que el scheduler existe y tiene el método
+        if hasattr(scheduler, 'run_manual'):
+            success = scheduler.run_manual(limit=limit)
+            return Response({
+                'success': success,
+                'message': f'Scraper ejecutado con límite {limit}',
+                'limit': limit
+            })
+        else:
+            # Fallback al comando directo
+            from django.core.management import call_command
+            call_command('import_rss', limit=limit)
+            return Response({
+                'success': True,
+                'message': f'Scraper ejecutado via comando (limit: {limit})',
+                'total_noticias': noticias.objects.count()
+            })
+            
     except Exception as e:
         return Response({
             'success': False,

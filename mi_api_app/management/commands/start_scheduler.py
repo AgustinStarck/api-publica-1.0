@@ -1,5 +1,4 @@
-# mi_api_app/management/commands/start_scheduler.py
-from django.core.management.base import BaseCommand
+# mi_api_app/scheduler.py
 import threading
 import time
 import logging
@@ -7,48 +6,53 @@ from django.core.management import call_command
 
 logger = logging.getLogger(__name__)
 
-class Command(BaseCommand):
-    help = 'Inicia el scheduler de noticias'
+class NewsScheduler:
+    def __init__(self):
+        self.is_running = False
+        self.thread = None
     
-    def add_arguments(self, parser):
-        parser.add_argument('--immediate', action='store_true', help='Ejecutar inmediatamente')
+    def start(self):
+        """Inicia el scheduler"""
+        if self.is_running:
+            return
+        self.is_running = True
+        self.thread = threading.Thread(target=self._run_scheduler, daemon=True)
+        self.thread.start()
+        logger.info("✅ Scheduler iniciado")
     
-    def handle(self, *args, **options):
-        def run_scheduler():
-            """Función que corre en segundo plano"""
-            logger.info("🔄 Scheduler iniciado (ejecutando cada 40 minutos)")
-            
-            if options['immediate']:
-                try:
-                    logger.info("🔄 Ejecutando scraper inmediatamente...")
-                    call_command('import_rss', limit=30)
-                    logger.info("✅ Scraper completado")
-                except Exception as e:
-                    logger.error(f"❌ Error en scraper: {e}")
-            
-            
-            while True:
-                time.sleep(780)  
-                try:
-                    logger.info("🔄 Ejecutando scraper automático...")
-                    call_command('import_rss', limit=30)
-                    logger.info("✅ Scraper automático completado")
-                except Exception as e:
-                    logger.error(f"❌ Error en scraper automático: {e}")
-        
-        # Iniciar el scheduler en un hilo
-        scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-        scheduler_thread.start()
-        
-        self.stdout.write(
-            self.style.SUCCESS('✅ Scheduler iniciado en segundo plano')
-        )
-        self.stdout.write('⏰ Se ejecutará cada 40 minutos')
-        
-        # Mantener el comando activo
+    def run_manual(self, limit=30):  # ← ¡ESTE MÉTODO DEBE EXISTIR!
+        """Ejecuta el scraper manualmente"""
         try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.stdout.write('\n⏹️ Scheduler detenido')
-            
+            logger.info(f"🔄 Ejecutando scraper manual (limit: {limit})...")
+            call_command('import_rss', limit=limit)
+            logger.info("✅ Scraper manual completado")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Error en scraper manual: {e}")
+            return False
+    
+    def _run_scheduler(self):
+        """Loop principal del scheduler"""
+        while self.is_running:
+            try:
+                self._run_scraper()
+                time.sleep(720)  # 40 minutos
+            except Exception as e:
+                logger.error(f"❌ Error en scheduler: {e}")
+                time.sleep(60)
+    
+    def _run_scraper(self):
+        """Ejecuta el scraper automático"""
+        try:
+            logger.info("🔄 Ejecutando scraper automático...")
+            call_command('import_rss', limit=30)
+            logger.info("✅ Scraper automático completado")
+        except Exception as e:
+            logger.error(f"❌ Error en scraper automático: {e}")
+
+# 👇 Asegurar que la instancia se crea correctamente
+scheduler = NewsScheduler()
+
+def start_scheduler():
+    """Función para iniciar el scheduler"""
+    scheduler.start()
