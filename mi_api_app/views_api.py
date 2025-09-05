@@ -11,8 +11,13 @@ logger = logging.getLogger(__name__)
 
 # Importamos el scheduler dentro de las funciones para evitar circular imports
 def get_scheduler():
-    from .scheduler import start_scheduler
-    return start_scheduler()
+    from .scheduler import scheduler, start_scheduler
+    
+    # Si el scheduler no está corriendo, iniciarlo
+    if not scheduler.is_running:
+        start_scheduler()
+    
+    return scheduler
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -75,7 +80,9 @@ def run_scraper_now(request):
         else:
             limit = int(request.data.get('limit', 10))
         
-        # 👇 VERIFICAR que el scheduler existe y tiene el método
+        scheduler = get_scheduler()  # ← Ahora devuelve la instancia
+        
+        # Verificar que el método existe
         if hasattr(scheduler, 'run_manual'):
             success = scheduler.run_manual(limit=limit)
             return Response({
@@ -89,8 +96,7 @@ def run_scraper_now(request):
             call_command('import_rss', limit=limit)
             return Response({
                 'success': True,
-                'message': f'Scraper ejecutado via comando (limit: {limit})',
-                'total_noticias': noticias.objects.count()
+                'message': f'Scraper ejecutado via comando (limit: {limit})'
             })
             
     except Exception as e:
