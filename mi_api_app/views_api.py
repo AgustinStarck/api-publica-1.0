@@ -121,3 +121,4 @@ def control_scheduler(request):
         return Response({
             'error': 'Acción no válida. Use "start" o "stop"'
         }, status=400)
+    

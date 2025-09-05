@@ -1,5 +1,5 @@
-# mi_api_app/__init__.py
 from django.apps import AppConfig
+import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,9 +9,11 @@ class MiApiAppConfig(AppConfig):
     name = 'mi_api_app'
     
     def ready(self):
-        # Importar el startup para iniciar el scheduler
-        try:
-            from . import startup
-            logger.info("✅ Scheduler de noticias iniciado")
-        except Exception as e:
-            logger.warning(f"⚠️ No se pudo iniciar el scheduler: {e}")
+        # Iniciar el scheduler cuando Django esté listo
+        if os.environ.get('RUN_MAIN') or os.environ.get('RENDER'):
+            try:
+                from .scheduler import start_scheduler
+                start_scheduler()
+                logger.info("✅ Scheduler de noticias iniciado automáticamente")
+            except Exception as e:
+                logger.warning(f"⚠️ No se pudo iniciar el scheduler: {e}")
