@@ -21,7 +21,7 @@ class NewsScheduler:
         self.thread.start()
         logger.info("✅ Scheduler iniciado (ejecutando cada 40 minutos)")
     
-    def run_manual(self, limit=30):
+    def run_manual(self, limit=10):
         """Ejecuta el scraper manualmente"""
         try:
             logger.info(f"🔄 Ejecutando scraper manual (limit: {limit})...")
@@ -42,7 +42,7 @@ class NewsScheduler:
         while self.is_running:
             try:
                 logger.info("🔄 Ejecutando scraper AUTOMÁTICO...")
-                call_command('import_rss', limit=30)
+                call_command('import_rss', limit=10)
                 logger.info("✅ Scraper automático completado")
                 
                
