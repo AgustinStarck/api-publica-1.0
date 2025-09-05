@@ -3,6 +3,8 @@ from mi_api_app.models import noticias
 from mi_api_app.feedrss import get_news_feed
 import json
 from datetime import datetime
+import html
+import re
 
 class Command(BaseCommand):
     help = 'Importa noticias desde múltiples feeds RSS a la base de datos'
@@ -10,54 +12,114 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--limit', type=int, default=5, help='Límite de noticias por feed')
         parser.add_argument('--url', type=str, help='URL específica de un feed (opcional)')
+        parser.add_argument('--skip-errors', action='store_true', help='Omitir feeds con errores')
+
+    def truncate_string(self, text, max_length=200):
+        """Trunca una cadena a la longitud máxima especificada"""
+        if text and len(text) > max_length:
+            return text[:max_length-3] + '...'
+        return text
+
+    def clean_html(self, raw_html):
+        """Limpia HTML y elimina etiquetas"""
+        if not raw_html:
+            return ""
+        # Primero decodificar entidades HTML
+        clean_text = html.unescape(raw_html)
+        # Eliminar etiquetas HTML
+        clean_text = re.sub('<[^<]+?>', '', clean_text)
+        # Eliminar espacios múltiples y saltos de línea
+        clean_text = re.sub('\s+', ' ', clean_text).strip()
+        return clean_text
 
     def handle(self, *args, **options):
         urls = [
-            # 🌍 GOOGLE NEWS - GLOBAL
-            "https://news.google.com/rss?hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss?hl=en&gl=US&ceid=US:en",
-            "https://news.google.com/rss/search?q=tecnología&hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss/search?q=deportes&hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss/search?q=economía&hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss/search?q=ciencia&hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss/search?q=salud&hl=es-419&gl=US&ceid=US:es-419",
-            "https://news.google.com/rss/search?q=política&hl=es-419&gl=US&ceid=US:es-419",
-
-            # 🌍 GOOGLE NEWS - REGIONES
-            "https://news.google.com/rss?hl=es-419&gl=AR&ceid=AR:es-419",  # Argentina
-            "https://news.google.com/rss?hl=es&gl=ES&ceid=ES:es",          # España
-            "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt-419",   # Brasil
-            "https://news.google.com/rss?hl=fr&gl=FR&ceid=FR:fr",          # Francia
-            "https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de",          # Alemania
-
-            # 📰 INTERNACIONALES
-            "http://feeds.bbci.co.uk/news/world/rss.xml",                  # BBC Mundo
-            "https://elpais.com/rss/elpais/portada.xml",                   # El País (España)
-            "https://www.theguardian.com/world/rss",                       # The Guardian
-            "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",      # New York Times - Mundo
-            "https://feeds.a.dj.com/rss/RSSWorldNews.xml",                 # Wall Street Journal - World
-            "https://www.aljazeera.com/xml/rss/all.xml",                   # Al Jazeera
-            "https://www.reutersagency.com/feed/?best-topics=world&post_type=best", # Reuters Mundo
+            "http://feeds.bbci.co.uk/news/world/rss.xml",                 # BBC World
+            "https://rss.cnn.com/rss/edition_world.rss",                  # CNN World
+            "https://www.aljazeera.com/xml/rss/all.xml",                  # Al Jazeera
+            "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",     # The New York Times - World
+            "https://www.theguardian.com/world/rss",                      # The Guardian - World
+            "https://www.reutersagency.com/feed/?best-topics=world",      # Reuters World
+            "https://feeds.nbcnews.com/nbcnews/public/world",             # NBC News
+            "https://feeds.a.dj.com/rss/RSSWorldNews.xml",                # Wall Street Journal - World
+            "https://www.ft.com/rss/world",                               # Financial Times
+            "https://www.politico.com/rss/world-news.xml",                # Politico World
+            "https://www.france24.com/en/rss",                            # France24 English
+            "https://english.kyodonews.net/rss/news",                     # Kyodo News (Japón)
+            "https://www.dw.com/atom/rss-en-all",                         # Deutsche Welle (Alemania)
+            "https://www.npr.org/rss/rss.php?id=1004",                    # NPR - World
 
             # 🇦🇷 ARGENTINA
-            "https://www.clarin.com/rss.html",                             # Clarín
-            "https://www.lanacion.com.ar/rss/",                            # La Nación
-            "https://www.infobae.com/argentina-rss.xml",                   # Infobae
-            "https://www.pagina12.com.ar/rss/portada",                     # Página 12
-            "https://www.cronista.com/files/rss/portada.xml",              # El Cronista
-            "https://www.ambito.com/rss/ultimas-noticias.xml",             # Ámbito Financiero
-            "https://tn.com.ar/rss.xml"                                    # TN Noticias
+            "https://www.clarin.com/rss/lo-ultimo/",                      # Clarín - Lo Último
+            "https://www.clarin.com/rss/mundo/",                          # Clarín - Mundo
+            "https://www.lanacion.com.ar/rssfeed/",                       # La Nación - General
+            "https://www.pagina12.com.ar/rss/portada",                    # Página/12 - Portada
+            "https://www.perfil.com/rss/feed.xml",                        # Perfil - General
+            "https://www.lavoz.com.ar/rss/ultimas-noticias.xml",          # La Voz del Interior
+            "https://www.ambito.com/rss/ultimas-noticias.xml",            # Ámbito Financiero
+            "https://www.cronista.com/files/rss/ultimas-noticias.xml",    # El Cronista
+            "https://www.telam.com.ar/rss2/ultimasnoticias.xml",          # Télam
+            "https://www.rionegro.com.ar/feed/",                          # Diario Río Negro
+            "https://www.lagaceta.com.ar/rss/rss.xml",                    # La Gaceta (Tucumán)
+            "https://www.losandes.com.ar/feed/",                          # Los Andes (Mendoza)
+            "https://www.diariouno.com.ar/feed",                          # Diario Uno (Mendoza)
+            "https://www.eldia.com/rss/ultimas-noticias.xml",             # Diario El Día (La Plata)
+            "https://www.baenegocios.com/rss/feed.xml",                   # BAE Negocios
+            "https://www.minutouno.com/rss",                              # Minuto Uno
+
+            # 🇧🇷 BRASIL
+            "https://g1.globo.com/rss/g1/",                               # G1 (Globo)
+            "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml",     # Folha de São Paulo
+            "https://rss.uol.com.br/feed/noticias.xml",                   # UOL Notícias
+
+            # 🇲🇽 MÉXICO
+            "https://www.eluniversal.com.mx/rss/mundo.xml",               # El Universal
+            "https://www.jornada.com.mx/rss/edicion.xml",                 # La Jornada
+            "https://www.milenio.com/rss/ultimas-noticias",               # Milenio
+
+            # 🇪🇸 ESPAÑA
+            "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada",  # El País - Portada
+            "https://ep00.epimg.net/rss/elpais/internacional.xml",        # El País - Internacional
+            "https://www.abc.es/rss/feeds/abc_ultima.xml",                # ABC España
+            "https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml",       # El Mundo
+
+            # 📰 GOOGLE NEWS (cambia "hl", "gl", "ceid" según idioma/país)
+            "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",      # USA (Inglés)
+            "https://news.google.com/rss?hl=en-GB&gl=GB&ceid=GB:en",      # Reino Unido
+            "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",      # India (Inglés)
+            "https://news.google.com/rss?hl=es-419&gl=AR&ceid=AR:es-419", # Argentina
+            "https://news.google.com/rss?hl=es-419&gl=MX&ceid=MX:es-419", # México
+            "https://news.google.com/rss?hl=es&gl=ES&ceid=ES:es",         # España
+            "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt-419",  # Brasil
+            "https://news.google.com/rss?hl=fr&gl=FR&ceid=FR:fr",         # Francia
+            "https://news.google.com/rss?hl=de&gl=DE&ceid=DE:de",         # Alemania
+            "https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it",         # Italia
+            "https://news.google.com/rss?hl=ru&gl=RU&ceid=RU:ru",         # Rusia
+            "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja",         # Japón
+            "https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans", # China (Simplificado)
+            "https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant", # Taiwán (Tradicional)
+            "https://news.google.com/rss?hl=ar&gl=EG&ceid=EG:ar",         # Medio Oriente (Egipto - Árabe)
+            "https://news.google.com/rss?hl=en-AU&gl=AU&ceid=AU:en",      # Australia
+            "https://news.google.com/rss?hl=en-CA&gl=CA&ceid=CA:en",      # Canadá (Inglés)
+            "https://news.google.com/rss?hl=fr-CA&gl=CA&ceid=CA:fr",      # Canadá (Francés)
+            "https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko",         # Corea del Sur    
         ]
         
         limit = options['limit']
         specific_url = options['url']
+        skip_errors = options['skip_errors']
         
         # Si se especifica una URL, usar solo esa
         if specific_url:
             urls = [specific_url]
+        else:
+            # Filtrar URLs problemáticas si se solicita omitir errores
+            if skip_errors:
+                urls = [url for url in urls if url not in problematic_urls]
         
         total_imported = 0
         total_processed = 0
+        failed_feeds = 0
         
         for i, url in enumerate(urls, 1):
             self.stdout.write(f"\n📡 Procesando feed {i}/{len(urls)}: {url}")
@@ -69,14 +131,19 @@ class Command(BaseCommand):
                 
                 count = 0
                 for news_item in news_list:
+                    # Limpiar y truncar campos si es necesario
+                    titulo = self.truncate_string(self.clean_html(news_item.get('title', '')))
+                    descripcion = self.truncate_string(self.clean_html(news_item.get('description', '')))
+                    link = self.truncate_string(news_item.get('link', ''), 500)  # Links pueden ser largos
+                    
                     # Verificar si la noticia ya existe para evitar duplicados
-                    if not noticias.objects.filter(link=news_item['link']).exists():
+                    if not noticias.objects.filter(link=link).exists():
                         noticias.objects.create(
-                            titulo=news_item['title'],
-                            descripcion=news_item['description'],
-                            site_icon=news_item['site_icon'],
-                            link=news_item['link'],
-                            image=news_item['image'],
+                            titulo=titulo,
+                            descripcion=descripcion,
+                            site_icon=news_item.get('site_icon', ''),
+                            link=link,
+                            image=news_item.get('image', ''),
                         )
                         count += 1
                 
@@ -90,11 +157,15 @@ class Command(BaseCommand):
                 )
                 
             except Exception as e:
+                failed_feeds += 1
                 self.stdout.write(
-                    self.style.WARNING(
-                        f'⚠️  Error procesando {url}: {str(e)}'
+                    self.style.ERROR(
+                        f'❌ Error procesando {url}: {str(e)}'
                     )
                 )
+                # Si es una URL específica, probablemente queremos ver el error
+                if specific_url:
+                    raise e
                 continue
         
         # Resumen final
@@ -105,3 +176,9 @@ class Command(BaseCommand):
                 f'de {total_processed} procesadas desde {len(urls)} feeds'
             )
         )
+        if failed_feeds > 0:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'⚠️  {failed_feeds} feeds tuvieron errores durante el procesamiento'
+                )
+            )

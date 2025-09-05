@@ -2,11 +2,11 @@
 from django.db import models
 
 class noticias(models.Model):
-    titulo = models.CharField(max_length=200)
+    titulo = models.CharField(max_length=500)
     descripcion = models.TextField()
-    site_icon = models.URLField(max_length=200)
-    link = models.URLField(max_length=200, unique=True)  # ← Añade unique=True
-    image = models.URLField(max_length=200, blank=True, null=True)
+    site_icon = models.URLField(max_length=500)
+    link = models.URLField(max_length=500, unique=True)  # ← Añade unique=True
+    image = models.URLField(max_length=500, blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
