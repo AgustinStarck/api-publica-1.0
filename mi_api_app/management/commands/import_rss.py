@@ -72,10 +72,9 @@ class Command(BaseCommand):
             "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml",     # Folha de São Paulo
             "https://rss.uol.com.br/feed/noticias.xml",                   # UOL Notícias
 
-            # 🇲🇽 MÉXICO
-            "https://www.eluniversal.com.mx/rss/mundo.xml",               # El Universal
+            # 🇲🇽 MÉXICO              
             "https://www.jornada.com.mx/rss/edicion.xml",                 # La Jornada
-            "https://www.milenio.com/rss/ultimas-noticias",               # Milenio
+            "https://www.milenio.com/rss",               # Milenio
 
             # 🇪🇸 ESPAÑA
             "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada",  # El País - Portada
