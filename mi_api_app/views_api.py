@@ -73,9 +73,9 @@ def run_scraper_now(request):
     scheduler = get_scheduler()
     try:
         if request.method == 'GET':
-            limit = int(request.GET.get('limit', 15))
+            limit = int(request.GET.get('limit', 3))
         else:
-            limit = int(request.data.get('limit', 15))
+            limit = int(request.data.get('limit', 3))
         
         success = scheduler.run_manual(limit=limit)
         

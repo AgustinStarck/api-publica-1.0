@@ -59,7 +59,7 @@ class NewsScheduler:
         self.thread.start()
         logger.info("✅ Scheduler iniciado (ejecutando cada 40 minutos)")
     
-    def run_manual(self, limit=10, search='', category=''):
+    def run_manual(self, limit=5, search='', category=''):
         """Ejecuta el scraper manualmente con filtros"""
         try:
             logger.info(f"🔄 Ejecutando scraper manual (limit: {limit}, search: '{search}', category: '{category}')...")
