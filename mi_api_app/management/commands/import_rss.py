@@ -86,7 +86,7 @@ class Command(BaseCommand):
         limit = options['limit']
         specific_url = options['url']
         
-        # Si se especifica una URL, usar solo esa
+        
         if specific_url:
             urls = [specific_url]
         
@@ -97,13 +97,13 @@ class Command(BaseCommand):
             self.stdout.write(f"\n📡 Procesando feed {i}/{len(urls)}: {url}")
             
             try:
-                # Obtener noticias del RSS
+                
                 news_json = get_news_feed(url, limit)
                 news_list = json.loads(news_json)
                 
                 count = 0
                 for news_item in news_list:
-                    # Verificar si la noticia ya existe para evitar duplicados
+                    
                     if not noticias.objects.filter(link=news_item['link']).exists():
                         noticias.objects.create(
                             titulo=news_item['title'],
@@ -131,7 +131,7 @@ class Command(BaseCommand):
                 )
                 continue
         
-        # Resumen final
+        
         self.stdout.write("\n" + "="*50)
         self.stdout.write(
             self.style.SUCCESS(

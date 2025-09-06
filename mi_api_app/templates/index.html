@@ -6,11 +6,11 @@
     <title>News Public API</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Favicon para la pestaña del navegador -->
+    
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%236e45e2'/><circle cx='50' cy='50' r='35' fill='%2388d3ce'/><path d='M35 40h30v5H35zm0 10h30v5H35zm0 10h20v5H35z' fill='white'/><circle cx='25' cy='25' r='3' fill='%23ffd700'/><circle cx='75' cy='25' r='3' fill='%23ffd700'/><circle cx='25' cy='75' r='3' fill='%23ffd700'/><circle cx='75' cy='75' r='3' fill='%23ffd700'/></svg>">
     <link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%236e45e2'/><circle cx='50' cy='50' r='35' fill='%2388d3ce'/><path d='M35 40h30v5H35zm0 10h30v5H35zm0 10h20v5H35z' fill='white'/><circle cx='25' cy='25' r='3' fill='%23ffd700'/><circle cx='75' cy='25' r='3' fill='%23ffd700'/><circle cx='25' cy='75' r='3' fill='%23ffd700'/><circle cx='75' cy='75' r='3' fill='%23ffd700'/></svg>">
     
-    <!-- Para dispositivos Apple -->
+    
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%236e45e2'/><circle cx='50' cy='50' r='35' fill='%2388d3ce'/><path d='M35 40h30v5H35zm0 10h30v5H35zm0 10h20v5H35z' fill='white'/><circle cx='25' cy='25' r='3' fill='%23ffd700'/><circle cx='75' cy='25' r='3' fill='%23ffd700'/><circle cx='25' cy='75' r='3' fill='%23ffd700'/><circle cx='75' cy='75' r='3' fill='%23ffd700'/></svg>">
     
     <style>
@@ -184,6 +184,17 @@
             font-size: 1.3rem;
         }
         
+        h4 {
+            color: var(--accent-secondary);
+            margin-bottom: 20px;
+            display: flex;
+            padding-left: 22px;
+            align-items: center;
+            gap: 12px;
+            
+        }
+        
+
         .code-container {
             position: relative;
             margin: 20px 0;
@@ -400,8 +411,24 @@
             <h2><i class="fas fa-plug"></i> Endpoint</h2>
             <div class="endpoint">
                 <span class="method">GET</span>
-                <span class="url">https://api-publica-1-0.onrender.com/api/noticias/?all=true</span>
+                <span class="url">https://news-public-api.onrender.com/api/noticias/?all=true</span>
             </div>
+        </section>
+
+        <section>
+            <h2><i class="fas fa-sliders-h"></i> Limit</h2>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="url">https://news-public-api.onrender.com/api/noticias/?all=true</span>
+            </div>
+            
+                <h4>?all=true : Entrega todas las noticias</h4>
+            
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="url">https://news-public-api.onrender.com/api/noticias/?limit=YOUR LIMIT</span>
+            </div>
+                <h4>?limit=YOUR LIMIT : Entrega la cantidad de noticias indicada</h4>
         </section>
 
         <section>
@@ -416,7 +443,7 @@
                 <div class="code-block python-code" id="python-code">
 <pre><span class="keyword">import</span> <span class="variable">requests</span>
 
-<span class="variable">url</span> = <span class="string">"https://api-publica-1-0.onrender.com/api/noticias/?all=true"</span>
+<span class="variable">url</span> = <span class="string">"https://news-public-api.onrender.com/api/noticias/?all=true"</span>
 <span class="variable">response</span> = <span class="variable">requests</span>.<span class="function">get</span>(<span class="variable">url</span>)
 <span class="variable">data</span> = <span class="variable">response</span>.<span class="function">json</span>()</pre>
                 </div>
@@ -433,7 +460,7 @@
                     </button>
                 </div>
                 <div class="code-block js-code" id="js-code">
-<pre><span class="keyword">const</span> <span class="variable">url</span> = <span class="string">"https://api-publica-1-0.onrender.com/api/noticias/?all=true"</span>;
+<pre><span class="keyword">const</span> <span class="variable">url</span> = <span class="string">"https://news-public-api.onrender.com/api/noticias/?all=true"</span>;
 
 <span class="function">fetch</span>(<span class="variable">url</span>)
   .<span class="function">then</span>(<span class="variable">response</span> => <span class="variable">response</span>.<span class="function">json</span>())

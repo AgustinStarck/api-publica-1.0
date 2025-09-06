@@ -1,4 +1,3 @@
-# mi_api_app/views.py
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -9,7 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Importamos el scheduler dentro de las funciones para evitar circular imports
+
 def get_scheduler():
     """Obtiene la instancia del scheduler"""
     from .scheduler import scheduler
@@ -20,7 +19,7 @@ def get_scheduler():
 def get_noticias_json(request):
     """Endpoint principal para obtener noticias"""
     try:
-        limit = int(request.GET.get('limit', 50))
+        limit = int(request.GET.get('limit', 70))
         search = request.GET.get('search', '')
         all_data = request.GET.get('all', '').lower() == 'true'
         
@@ -32,7 +31,7 @@ def get_noticias_json(request):
                 Q(descripcion__icontains=search)
             )
         
-        # Si se piden todos los datos, ignorar el límite
+        
         if all_data:
             noticias_list = list(noticias_qs)
         else:

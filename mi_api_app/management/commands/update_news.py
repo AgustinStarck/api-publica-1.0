@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("🔄 Iniciando actualización de noticias...")
         
-        # Ejecutar el comando de importación
+        
         call_command('import_rss', limit=options['limit'])
         
         self.stdout.write(self.style.SUCCESS("✅ Actualización completada"))

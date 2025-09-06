@@ -26,9 +26,9 @@ class Command(BaseCommand):
                 except Exception as e:
                     logger.error(f"❌ Error en scraper: {e}")
             
-            # Ejecutar cada 40 minutos
+            
             while True:
-                time.sleep(2400)  # 40 minutos
+                time.sleep(2400)  
                 try:
                     logger.info("🔄 Ejecutando scraper automático...")
                     call_command('import_rss', limit=5)
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 except Exception as e:
                     logger.error(f"❌ Error en scraper automático: {e}")
         
-        # Iniciar el scheduler en un hilo
+        
         scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
         scheduler_thread.start()
         
@@ -45,7 +45,7 @@ class Command(BaseCommand):
         )
         self.stdout.write('⏰ Se ejecutará cada 40 minutos')
         
-        # Mantener el comando activo
+        
         try:
             while True:
                 time.sleep(1)

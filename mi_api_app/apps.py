@@ -6,5 +6,5 @@ class MiApiAppConfig(AppConfig):
     name = 'mi_api_app'
     
     def ready(self):
-        # Importar las señales y scheduler
+        
         import mi_api_app.scheduler

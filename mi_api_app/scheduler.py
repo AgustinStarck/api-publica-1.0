@@ -1,4 +1,3 @@
-# mi_api_app/scheduler.py
 import threading
 import time
 import logging
@@ -33,7 +32,7 @@ def start_scheduler():
     thread.start()
     return thread
 
-# Iniciar automáticamente al importar
+
 scheduler_thread = start_scheduler()
 
 import threading
@@ -64,7 +63,7 @@ class NewsScheduler:
         try:
             logger.info(f"🔄 Ejecutando scraper manual (limit: {limit}, search: '{search}', category: '{category}')...")
             
-            # Construir argumentos para el comando
+            
             command_args = ['import_rss', f'--limit={limit}']
             
             if search:
@@ -72,7 +71,7 @@ class NewsScheduler:
             if category:
                 command_args.append(f'--category={category}')
             
-            # Ejecutar el comando
+            
             call_command(*command_args)
             
             logger.info("✅ Scraper manual completado exitosamente")
@@ -82,7 +81,7 @@ class NewsScheduler:
             logger.error(f"❌ Error en scraper manual: {str(e)}")
             return False
 
-# Instancia global del scheduler
+
 scheduler = NewsScheduler()
 
 def start_scheduler():

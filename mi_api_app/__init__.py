@@ -9,7 +9,7 @@ class MiApiAppConfig(AppConfig):
     name = 'mi_api_app'
     
     def ready(self):
-        # Importar el startup para iniciar el scheduler
+        
         try:
             from . import startup
             logger.info("✅ Scheduler de noticias iniciado")

@@ -10,6 +10,6 @@ class NoticiasSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        # Formatear la fecha para que sea más legible
+        
         representation['fecha'] = instance.fecha.strftime('%Y-%m-%d %H:%M:%S')
         return representation
