@@ -25,13 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'False'
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '.onrender.com'  # Para Render.com
+    '.onrender.com'
 ]
+
+
 
 
 # Application definition
